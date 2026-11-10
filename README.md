@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Credit Card Fraud Detection logo" width="140">
+</p>
+
 # Credit Card Fraud Detection
 
 An end-to-end machine learning pipeline that detects fraudulent credit card transactions. It covers data cleaning, feature engineering, class-imbalance handling with SMOTE, model comparison and tuning, evaluation, and a FastAPI service for real-time predictions.
@@ -10,6 +14,8 @@ An end-to-end machine learning pipeline that detects fraudulent credit card tran
 - **Hyperparameter tuning** – `RandomizedSearchCV` over Random Forest parameters.
 - **Evaluation** – accuracy, precision, recall, F1, ROC AUC, plus confusion matrix, ROC curve, precision-recall curve and feature importance plots.
 - **REST API** – FastAPI endpoint that returns the prediction, fraud probability and confidence for a transaction.
+- **Streamlit app** – score a single transaction or upload a CSV for batch predictions.
+- **Docker and CI** – a Dockerfile for the API and a GitHub Actions workflow that runs the tests.
 - **Notebooks** – step-by-step exploration from data loading to model evaluation.
 
 ## Dataset
@@ -32,6 +38,8 @@ The file is listed in `.gitignore`, so it will not be committed.
 
 ## Pipeline
 
+![Pipeline workflow](assets/workflow.png)
+
 ```
 creditcard.csv
    │
@@ -53,7 +61,7 @@ credit-card-fraud-detection/
 ├── app/
 │   ├── api.py                # FastAPI application
 │   ├── predict.py            # Sample prediction script
-│   └── streamlit_app.py      # Placeholder for a Streamlit UI
+│   └── streamlit_app.py      # Streamlit dashboard
 ├── config/
 │   └── config.py             # Paths, random seed, test size, CV folds
 ├── data/
@@ -79,7 +87,9 @@ credit-card-fraud-detection/
 │   ├── anomaly_detection.py  # Placeholder
 │   ├── logger.py
 │   └── utils.py
-├── tests/
+├── tests/                    # pytest suite
+├── .github/workflows/ci.yml  # CI: runs pytest on every push
+├── Dockerfile
 ├── main.py                   # Runs the full training pipeline
 ├── requirements.txt
 └── README.md
@@ -169,6 +179,35 @@ You can also test the predictor without the server:
 python -m app.predict
 ```
 
+### Run the Streamlit app
+
+Train the model first, then:
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+The app has two tabs: a form for a single transaction (with a "Load sample transaction" button) and a CSV upload that scores up to 1,000 rows and lets you download the results. The CSV needs the columns `Time`, `V1`–`V28` and `Amount`.
+
+### Run with Docker
+
+Train the model first so `models/` contains the saved files, then:
+
+```bash
+docker build -t fraud-detection-api .
+docker run -p 8000:8000 fraud-detection-api
+```
+
+The API is then available at <http://localhost:8000/docs>. The image copies in `models/`, so rebuild it after retraining.
+
+### Run the tests
+
+```bash
+python -m pytest tests -v
+```
+
+The tests cover cleaning, feature engineering, splitting, scaling, SMOTE and the prediction output format. They use small synthetic data and a tiny model, so they don't need the dataset or a trained model. The same command runs in GitHub Actions on every push and pull request.
+
 ## Evaluation
 
 The final model is evaluated on the held-out 20% test split. Because fraud is so rare, accuracy is misleading, so the pipeline focuses on **precision, recall, F1 and ROC AUC**, and writes these plots to `reports/figures/`:
@@ -194,10 +233,9 @@ Run `python main.py` to reproduce the metrics for your environment.
 
 ## Roadmap
 
-- [ ] Streamlit dashboard (`app/streamlit_app.py`)
 - [ ] Anomaly detection models (`src/anomaly_detection.py`)
-- [ ] Unit tests for preprocessing and prediction
-- [ ] Dockerfile and CI workflow
+- [ ] API tests (the FastAPI app loads the trained model on import)
+- [ ] Dashboard screenshot (`assets/dashboard.png`)
 
 ## License
 
