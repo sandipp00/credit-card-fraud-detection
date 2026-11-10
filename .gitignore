@@ -1,0 +1,10 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+logs/
+.env
+
+# Kaggle dataset (144 MB, exceeds GitHub's 100 MB limit) - download from https://www.kaggle.com/mlg-ulb/creditcardfraud
+data/raw/creditcard.csv
